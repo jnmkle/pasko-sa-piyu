@@ -1,6 +1,6 @@
 // ============================================================================
 // CS0045 - Computer Graphics and Visual Computing (Final Project)
-// Project Title: Tamaraw Beats - FEU Manila Grandstand 3D Concert & Light Show
+// Project Title: Pasko sa Piyu - FEU Manila Grandstand 3D Concert & Light Show
 // Libraries: FreeGLUT, GLEW, OpenGL
 // ============================================================================
 
@@ -41,8 +41,9 @@ float spotSweepAngle = 0.0f;   // Rotation for sweeping moving-head spotlights
 float crystalSpinAngle = 0.0f; // Rotation for VBO centerpiece
 float riserHeight = 0.0f;      // Translation for center drum riser
 float bassPulse = 1.0f;        // Scaling for line arrays, 4 floor subs & 2D EQ
-bool bandJamActive = true;     // Toggles musicians' motion, bass pulse & 2D EQ
+bool bandJamActive = true;     // Toggles musicians' & audience motion, bass pulse & 2D EQ
 bool hazeMachinesOn = true;    // Toggles Left & Right stage haze machines [M]
+bool fireworksOn = true;       // Toggles aerial fireworks show [K]
 bool showHUD = true;           // Toggles compact 2D console overlay [H]
 
 // Lighting & Show Modes
@@ -704,6 +705,272 @@ void drawFEUManilaGrandstand()
 }
 
 // ============================================================================
+// FESTIVE LANDMARK: GIANT CHRISTMAS TREE BEHIND THE CONCERT STAGE
+// ============================================================================
+void drawChristmasTreeBehindStage()
+{
+    // Placed on the athletic field directly behind the concert stage (+Z)
+    // and clearly in front of the FEU Manila Grandstand bleachers
+    glPushMatrix();
+    glTranslatef(0.0f, 0.0f, 14.5f);
+
+    // 1. Octagonal Festive Tree Planter Base (FEU Green & Gold Trim)
+    glPushMatrix();
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    glColor3f(0.04f, 0.34f, 0.16f);
+    drawCylinder(2.65f, 2.45f, 0.65f, 12);
+    glTranslatef(0.0f, 0.0f, 0.65f);
+    glColor3f(0.95f, 0.76f, 0.12f);
+    drawCylinder(2.50f, 2.50f, 0.12f, 12);
+    glPopMatrix();
+
+    // 2. Wrapped Gift Boxes Around the Tree Base
+    const float giftData[6][6] = {
+        {-1.45f, 0.35f, -1.25f, 0.70f, 0.90f, 0.15f},
+        {1.55f, 0.40f, -1.15f, 0.80f, 0.05f, 0.45f},
+        {-0.85f, 0.30f, -1.75f, 0.60f, 0.95f, 0.76f},
+        {0.95f, 0.32f, -1.70f, 0.64f, 0.85f, 0.15f},
+        {-1.80f, 0.28f, 0.45f, 0.56f, 0.95f, 0.76f},
+        {1.75f, 0.34f, 0.55f, 0.68f, 0.05f, 0.45f}};
+    for (int g = 0; g < 6; g++)
+    {
+        float gx = giftData[g][0];
+        float gy = giftData[g][1];
+        float gz = giftData[g][2];
+        float gs = giftData[g][3];
+
+        glPushMatrix();
+        glTranslatef(gx, gy, gz);
+        glRotatef(g * 22.0f, 0.0f, 1.0f, 0.0f);
+
+        glPushMatrix();
+        glScalef(gs, gs, gs);
+        if (g % 3 == 0)
+            glColor3f(0.85f, 0.14f, 0.18f);
+        else if (g % 3 == 1)
+            glColor3f(0.05f, 0.48f, 0.24f);
+        else
+            glColor3f(0.95f, 0.76f, 0.14f);
+        glutSolidCube(1.0);
+        glPopMatrix();
+
+        // Gold Ribbon Cross Bands
+        glColor3f(0.98f, 0.84f, 0.22f);
+        glPushMatrix();
+        glScalef(gs * 1.04f, gs * 1.03f, gs * 0.18f);
+        glutSolidCube(1.0);
+        glPopMatrix();
+        glPushMatrix();
+        glScalef(gs * 0.18f, gs * 1.03f, gs * 1.04f);
+        glutSolidCube(1.0);
+        glPopMatrix();
+        glPopMatrix();
+    }
+
+    // 3. Sturdy Tree Trunk
+    glPushMatrix();
+    glTranslatef(0.0f, 0.65f, 0.0f);
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    glColor3f(0.32f, 0.19f, 0.09f);
+    drawCylinder(0.65f, 0.52f, 2.2f, 14);
+    glPopMatrix();
+
+    // 4. Five Layered Evergreen Foliage Cones (Total Height ~14.2m)
+    const int tiers = 5;
+    const float tierBaseY[tiers] = {2.10f, 4.30f, 6.40f, 8.40f, 10.25f};
+    const float tierRadius[tiers] = {3.85f, 3.25f, 2.65f, 2.00f, 1.35f};
+    const float tierHeight[tiers] = {3.40f, 3.10f, 2.85f, 2.55f, 2.35f};
+
+    for (int t = 0; t < tiers; t++)
+    {
+        glPushMatrix();
+        glTranslatef(0.0f, tierBaseY[t], 0.0f);
+        glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+        glColor3f(0.03f, 0.30f + t * 0.025f, 0.13f);
+        glutSolidCone(tierRadius[t], tierHeight[t], 24, 6);
+        glPopMatrix();
+
+        // Spiral Glowing Fairy Lights & Ornaments around each Foliage Tier
+        glDisable(GL_LIGHTING);
+        int lightsInTier = 18 - t * 2;
+        for (int l = 0; l < lightsInTier; l++)
+        {
+            float frac = (float)l / lightsInTier;
+            float angle = frac * 2.0f * (float)M_PI * 1.5f + t * 0.9f;
+            float localH = frac * (tierHeight[t] * 0.82f);
+            float rAtH = tierRadius[t] * (1.0f - localH / tierHeight[t]) + 0.08f;
+
+            float lx = rAtH * cosf(angle);
+            float ly = tierBaseY[t] + localH;
+            float lz = rAtH * sinf(angle);
+
+            float twinkle = 0.60f + 0.40f * sinf(simTime * 5.0f + l * 1.3f + t);
+            glPushMatrix();
+            glTranslatef(lx, ly, lz);
+            if ((l + t) % 3 == 0)
+                glColor3f(1.0f * twinkle, 0.82f * twinkle, 0.14f); // FEU Gold
+            else if ((l + t) % 3 == 1)
+                glColor3f(0.95f * twinkle, 0.16f, 0.22f); // Christmas Red
+            else
+                glColor3f(0.10f, 0.96f * twinkle, 0.50f * twinkle); // Emerald Green
+            glutSolidSphere(0.12, 8, 8);
+            glPopMatrix();
+        }
+        glEnable(GL_LIGHTING);
+    }
+
+    // 5. Glowing 3D Golden Star Tree Topper (Spinning Gently)
+    float starY = 12.85f;
+    glDisable(GL_LIGHTING);
+    glPushMatrix();
+    glTranslatef(0.0f, starY, 0.0f);
+    glRotatef(simTime * 35.0f, 0.0f, 1.0f, 0.0f);
+
+    float starGlow = 0.85f + 0.15f * sinf(simTime * 6.0f);
+    glColor3f(1.0f * starGlow, 0.86f * starGlow, 0.18f);
+
+    // Core Sphere + 6-Pointed 3D Star Spikes
+    glutSolidSphere(0.32, 12, 12);
+
+    // Vertical Top & Bottom Spikes
+    glPushMatrix();
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    glutSolidCone(0.24, 0.95, 10, 1);
+    glPopMatrix();
+    glPushMatrix();
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+    glutSolidCone(0.22, 0.75, 10, 1);
+    glPopMatrix();
+
+    // Horizontal & Diagonal Star Rays
+    for (int ray = 0; ray < 4; ray++)
+    {
+        glPushMatrix();
+        glRotatef(ray * 90.0f, 0.0f, 0.0f, 1.0f);
+        glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+        glutSolidCone(0.20, 0.85, 10, 1);
+        glPopMatrix();
+    }
+    glPopMatrix();
+    glEnable(GL_LIGHTING);
+
+    glPopMatrix();
+}
+
+// ============================================================================
+// SKY EFFECTS: ANIMATED MULTI-BURST AERIAL FIREWORKS SHOW [K]
+// ============================================================================
+void drawAerialFireworks()
+{
+    if (!fireworksOn)
+        return;
+
+    glDisable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE); // Additive blending for bright glowing sparks
+    glDepthMask(GL_FALSE);
+
+    const int numShells = 5;
+    const float shellOffsets[numShells] = {0.0f, 0.65f, 1.30f, 1.95f, 2.60f};
+    const float shellX[numShells] = {-11.5f, -5.5f, 0.5f, 6.5f, 12.0f};
+    const float shellY[numShells] = {17.5f, 20.5f, 22.0f, 19.5f, 17.0f};
+    const float shellZ[numShells] = {18.0f, 21.0f, 19.5f, 21.5f, 18.5f};
+
+    const float palette[5][3] = {
+        {1.00f, 0.82f, 0.16f}, // FEU Gold
+        {0.10f, 0.96f, 0.52f}, // FEU Emerald Green
+        {0.15f, 0.88f, 1.00f}, // Electric Cyan
+        {1.00f, 0.25f, 0.65f}, // Festive Magenta
+        {1.00f, 0.45f, 0.15f}  // Warm Amber
+    };
+
+    const float cyclePeriod = 3.2f;
+
+    for (int s = 0; s < numShells; s++)
+    {
+        float localT = fmodf(simTime + shellOffsets[s], cyclePeriod) / cyclePeriod;
+        const float launchEnd = 0.28f;
+
+        float r = palette[s][0];
+        float g = palette[s][1];
+        float b = palette[s][2];
+
+        if (localT < launchEnd)
+        {
+            // Phase 1: Rising Rocket Trail toward Burst Apex
+            float u = localT / launchEnd;
+            float easeU = 1.0f - (1.0f - u) * (1.0f - u);
+            float curY = 2.0f + (shellY[s] - 2.0f) * easeU;
+
+            glLineWidth(2.2f);
+            glBegin(GL_LINES);
+            glColor4f(1.0f, 0.92f, 0.55f, 0.85f);
+            glVertex3f(shellX[s], curY, shellZ[s]);
+            glColor4f(r, g, b, 0.0f);
+            glVertex3f(shellX[s], curY - 2.4f, shellZ[s]);
+            glEnd();
+        }
+        else
+        {
+            // Phase 2: Spherical Starburst Explosion + Gravity Spark Trails
+            float burstT = (localT - launchEnd) / (1.0f - launchEnd);
+            float expand = 5.4f * (1.0f - powf(1.0f - burstT, 2.2f));
+            float gravityDrop = 2.6f * burstT * burstT;
+            float alpha = (1.0f - burstT) * (1.0f - burstT);
+
+            const int rings = 5;
+            const int spokes = 14;
+
+            for (int ring = 1; ring < rings; ring++)
+            {
+                float phi = ((float)M_PI * ring) / rings;
+                float sinPhi = sinf(phi);
+                float cosPhi = cosf(phi);
+
+                for (int sp = 0; sp < spokes; sp++)
+                {
+                    float theta = (2.0f * (float)M_PI * sp) / spokes + ring * 0.35f;
+                    float dx = sinPhi * cosf(theta);
+                    float dy = cosPhi;
+                    float dz = sinPhi * sinf(theta);
+
+                    float px = shellX[s] + dx * expand;
+                    float py = shellY[s] + dy * expand - gravityDrop;
+                    float pz = shellZ[s] + dz * expand;
+
+                    // Trailing Spark Streak
+                    float trailExpand = expand * 0.72f;
+                    float trailDrop = 2.6f * fmaxf(0.0f, burstT - 0.08f) * fmaxf(0.0f, burstT - 0.08f);
+                    float tx = shellX[s] + dx * trailExpand;
+                    float ty = shellY[s] + dy * trailExpand - trailDrop;
+                    float tz = shellZ[s] + dz * trailExpand;
+
+                    glLineWidth(2.0f);
+                    glBegin(GL_LINES);
+                    glColor4f(r, g, b, alpha);
+                    glVertex3f(px, py, pz);
+                    glColor4f(r, g, b, alpha * 0.10f);
+                    glVertex3f(tx, ty, tz);
+                    glEnd();
+
+                    // Glowing Spark Tip
+                    glPointSize(4.0f);
+                    glBegin(GL_POINTS);
+                    glColor4f(1.0f, 0.98f, 0.85f, alpha);
+                    glVertex3f(px, py, pz);
+                    glEnd();
+                }
+            }
+        }
+    }
+
+    glDepthMask(GL_TRUE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_BLEND);
+    glEnable(GL_LIGHTING);
+}
+
+// ============================================================================
 // DOME TENT TRUSS & TENSIONED CANOPY STRUCTURE
 // ============================================================================
 void drawDomeTentTruss()
@@ -900,7 +1167,7 @@ void drawRisingLiveFeedLedWalls()
 {
     const float wallH = 3.15f;   // 9 ft proportional height
     const float sideW = 4.20f;   // 12 ft proportional width (9x12)
-    const float towerX = 13.85f; // Clear lateral offset outside the ±10.6f dome truss
+    const float towerX = 13.85f; // Clear lateral offset outside the +/-10.6f dome truss
     const float towerZ = 0.85f;  // Support truss sits behind the LED screen plane
     const float towerH = 7.45f;  // Terminates cleanly behind the top of the LED cabinet
     const float screenY = 5.85f;
@@ -2127,6 +2394,152 @@ void drawMusician(int role, float x, float y, float z, float yawDeg,
 }
 
 // ============================================================================
+// ANIMATED CONCERT AUDIENCE WITH GLOWING LIGHT STICKS & LED WRISTBANDS
+// ============================================================================
+void drawAudiencePerson(float x, float z, int id)
+{
+    const float phase = id * 1.37f;
+    const float beat = bandJamActive ? sinf(simTime * 7.5f + phase) : 0.0f;
+    const float jump = bandJamActive ? 0.12f * fabsf(beat) : 0.0f;
+    const float sway = bandJamActive ? 9.0f * sinf(simTime * 3.8f + phase) : 0.0f;
+    const float armWave = bandJamActive ? 35.0f * sinf(simTime * 6.0f + phase) : 0.0f;
+
+    const float colors[6][3] = {
+        {0.05f, 0.45f, 0.22f}, {0.95f, 0.75f, 0.12f}, {0.15f, 0.22f, 0.65f}, {0.70f, 0.18f, 0.30f}, {0.85f, 0.85f, 0.88f}, {0.18f, 0.18f, 0.22f}};
+    const float *shirt = colors[id % 6];
+
+    // FEU Green, FEU Gold, Cyan & Magenta concert glow stick / wristband colors
+    const float glowColors[4][3] = {
+        {0.08f, 0.98f, 0.48f}, // FEU Emerald Glow
+        {1.00f, 0.84f, 0.14f}, // FEU Gold Glow
+        {0.10f, 0.92f, 1.00f}, // Cyan Glow
+        {1.00f, 0.22f, 0.78f}  // Magenta Glow
+    };
+    const float *glow = glowColors[id % 4];
+    float glowPulse = bandJamActive ? (0.78f + 0.22f * sinf(simTime * 8.0f + phase)) : 0.55f;
+
+    glPushMatrix();
+    glTranslatef(x, jump, z);
+    // The stage faces toward negative Z, so the crowd faces positive Z.
+    glRotatef(sway, 0.0f, 1.0f, 0.0f);
+
+    // Legs
+    glColor3f(0.12f, 0.14f, 0.20f);
+    for (int side = -1; side <= 1; side += 2)
+    {
+        glPushMatrix();
+        glTranslatef(side * 0.12f, 0.38f, 0.0f);
+        glScalef(0.16f, 0.76f, 0.18f);
+        glutSolidCube(1.0);
+        glPopMatrix();
+    }
+
+    // Shirt / torso
+    glColor3f(shirt[0], shirt[1], shirt[2]);
+    glPushMatrix();
+    glTranslatef(0.0f, 1.08f, 0.0f);
+    glScalef(0.46f, 0.72f, 0.26f);
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+    // Head and hair
+    glColor3f(0.82f, 0.62f, 0.46f);
+    glPushMatrix();
+    glTranslatef(0.0f, 1.62f, 0.0f);
+    glutSolidSphere(0.20, 10, 8);
+    glTranslatef(0.0f, 0.12f, 0.0f);
+    glScalef(1.02f, 0.45f, 1.02f);
+    glColor3f(0.10f, 0.09f, 0.08f);
+    glutSolidSphere(0.20, 10, 8);
+    glPopMatrix();
+
+    // Arms + Glowing LED Wristbands & Handheld Concert Light Sticks
+    for (int side = -1; side <= 1; side += 2)
+    {
+        glPushMatrix();
+        glTranslatef(side * 0.29f, 1.37f, 0.0f);
+        const float angle = bandJamActive
+                                ? side * (125.0f + armWave)
+                                : side * 12.0f;
+        glRotatef(angle, 0.0f, 0.0f, 1.0f);
+
+        // Arm
+        glColor3f(0.82f, 0.62f, 0.46f);
+        glPushMatrix();
+        glTranslatef(0.0f, -0.30f, 0.0f);
+        glScalef(0.12f, 0.60f, 0.12f);
+        glutSolidCube(1.0);
+        glPopMatrix();
+
+        glDisable(GL_LIGHTING);
+
+        // Glowing LED Light Band around Wrist
+        glPushMatrix();
+        glTranslatef(0.0f, -0.50f, 0.0f);
+        glColor3f(glow[0] * glowPulse, glow[1] * glowPulse, glow[2] * glowPulse);
+        glScalef(0.145f, 0.055f, 0.145f);
+        glutSolidCube(1.0);
+        glPopMatrix();
+
+        // Handheld Concert Light Stick (in Right Hand, plus Dual-Wield for every 3rd fan)
+        if (side == 1 || (id % 3 == 0))
+        {
+            // Dark Handle Grip
+            glPushMatrix();
+            glTranslatef(0.0f, -0.62f, 0.0f);
+            glColor3f(0.14f, 0.14f, 0.18f);
+            glScalef(0.045f, 0.12f, 0.045f);
+            glutSolidCube(1.0);
+            glPopMatrix();
+
+            // Luminous Light Stick Blade
+            glPushMatrix();
+            glTranslatef(0.0f, -0.84f, 0.0f);
+            glColor3f(glow[0] * glowPulse, glow[1] * glowPulse, glow[2] * glowPulse);
+            glScalef(0.055f, 0.34f, 0.055f);
+            glutSolidCube(1.0);
+            glPopMatrix();
+
+            // Soft Translucent Glow Halo around Light Stick
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glDepthMask(GL_FALSE);
+            glPushMatrix();
+            glTranslatef(0.0f, -0.84f, 0.0f);
+            glColor4f(glow[0], glow[1], glow[2], 0.28f * glowPulse);
+            glScalef(0.13f, 0.40f, 0.13f);
+            glutSolidSphere(0.65, 8, 8);
+            glPopMatrix();
+            glDepthMask(GL_TRUE);
+            glDisable(GL_BLEND);
+        }
+
+        glEnable(GL_LIGHTING);
+        glPopMatrix();
+    }
+    glPopMatrix();
+}
+
+void drawConcertCrowd()
+{
+    const int rows = 7;
+    const int columns = 22;
+    // World-space audience, in front of the barricade and on the field.
+    for (int row = 0; row < rows; ++row)
+    {
+        for (int col = 0; col < columns; ++col)
+        {
+            const int id = row * columns + col;
+            float x = (col - (columns - 1) * 0.5f) * 0.95f;
+            const float z = -6.0f - row * 1.10f;
+            if (row % 2 == 1)
+                x += 0.35f;
+            drawAudiencePerson(x, z, id);
+        }
+    }
+}
+
+// ============================================================================
 // MAIN 3D CONCERT SCENE ASSEMBLY
 // ============================================================================
 void drawConcertScene3D()
@@ -2137,8 +2550,11 @@ void drawConcertScene3D()
     // 1. FEU Manila Grandstand & Athletic Field Environment (In Background at +Z)
     drawFEUManilaGrandstand();
 
-    // 2. Rotate entire Concert Stage 180 degrees so its Front faces the Viewer (-Z)
-    //    while keeping the FEU Manila Grandstand visible in the background
+    // 2. Giant Decorated Christmas Tree behind the Concert Stage (+Z)
+    drawChristmasTreeBehindStage();
+
+    // 3. Rotate entire Concert Stage 180 degrees so its Front faces the Viewer (-Z)
+    //    while keeping the FEU Manila Grandstand & Christmas Tree visible behind it
     glPushMatrix();
     glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
 
@@ -2379,7 +2795,7 @@ void drawConcertHUD2D()
                                                                                      : "FREEZE";
 
         glColor3f(0.95f, 0.78f, 0.15f);
-        drawText2D(18.0f, top - 16.0f, "FEU MANILA GRANDSTAND - CONCERT CONSOLE");
+        drawText2D(18.0f, top - 16.0f, "PASKO SA PIYU - FEU MANILA GRANDSTAND CONSOLE");
 
         glColor3f(1.0f, 1.0f, 1.0f);
         drawText2D(18.0f, top - 33.0f, "[L] Mode: " + modeName + std::string(" | [0] Field: ") + (houseLightOn ? "ON" : "OFF") + " | [H] Hide HUD");
@@ -2395,10 +2811,12 @@ void drawConcertHUD2D()
                        std::string("| [E] Bars: ") + (ledBarsOn ? "ON" : "OFF"));
         drawText2D(18.0f, top - 84.0f,
                    std::string("[T] Stormy: ") + (stormyOn ? "ON " : "OFF ") +
-                       std::string("| [B] Band: ") + (bandJamActive ? "ON " : "OFF ") +
+                       std::string("| [B] Band/Crowd: ") + (bandJamActive ? "ON " : "OFF ") +
                        std::string("| [M] Haze: ") + (hazeMachinesOn ? "ON" : "OFF"));
-        drawText2D(18.0f, top - 101.0f, "[Up/Dn] Riser | [Drag] Orbit | [Wheel] Zoom");
-        drawText2D(18.0f, top - 118.0f, "[WASD] Pan/Zoom | [R] Reset View");
+        drawText2D(18.0f, top - 101.0f,
+                   std::string("[K] Fireworks: ") + (fireworksOn ? "ON " : "OFF ") +
+                       std::string("| [Up/Dn] Riser | [Drag] Orbit"));
+        drawText2D(18.0f, top - 118.0f, "[WASD] Pan/Zoom | [Wheel] Zoom | [R] Reset View");
     }
     else
     {
@@ -2469,6 +2887,8 @@ void display()
 
     setupLighting();
     drawConcertScene3D();
+    drawConcertCrowd();
+    drawAerialFireworks();
     drawConcertHUD2D();
 
     glutSwapBuffers();
@@ -2564,6 +2984,10 @@ void keyboardCallback(unsigned char key, int x, int y)
     case 'M':
         hazeMachinesOn = !hazeMachinesOn;
         break;
+    case 'k':
+    case 'K':
+        fireworksOn = !fireworksOn;
+        break;
     case 'h':
     case 'H':
         showHUD = !showHUD;
@@ -2593,7 +3017,7 @@ void keyboardCallback(unsigned char key, int x, int y)
         riserHeight = 0.0f;
         lightShowMode = 1;
         spotCyanOn = spotMagentaOn = spotAmberOn = spotBeamsOn = floorSpotsOn = houseLightOn = true;
-        strobeOn = ledParsOn = ledBarsOn = stormyOn = bandJamActive = hazeMachinesOn = true;
+        strobeOn = ledParsOn = ledBarsOn = stormyOn = bandJamActive = hazeMachinesOn = fireworksOn = true;
         break;
     case 27:
         exit(0);
@@ -2675,7 +3099,7 @@ int main(int argc, char **argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(winWidth, winHeight);
-    glutCreateWindow("CS0045 Final Project - FEU Manila Grandstand Concert & Light Show");
+    glutCreateWindow("CS0045 Final Project - Pasko sa Piyu (FEU Manila Grandstand)");
 
     GLenum err = glewInit();
     if (err != GLEW_OK)
