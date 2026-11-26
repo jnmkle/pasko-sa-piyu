@@ -45,6 +45,7 @@ bool bandJamActive = true;     // Toggles musicians' & audience motion, bass pul
 bool hazeMachinesOn = true;    // Toggles Left & Right stage haze machines [M]
 bool fireworksOn = true;       // Toggles aerial fireworks show [K]
 bool showHUD = true;           // Toggles compact 2D console overlay [H]
+bool starsOn = true;            // Toggles sparse Christmas sky stars [J]
 
 // Lighting & Show Modes
 int lightShowMode = 1;     // 1 = Smooth Sweep, 2 = Party Chase, 3 = Manual Freeze
@@ -106,6 +107,76 @@ void drawStrokeText3D(const char *text, float scale)
         glutStrokeCharacter(GLUT_STROKE_ROMAN, *p);
     }
     glPopMatrix();
+}
+
+// ============================================================================
+// CHRISTMAS SKY: 3D STARS ABOVE THE BACKSTAGE ROOFLINE
+// Stars use world coordinates like the fireworks, so they move naturally
+// with the camera instead of staying fixed on the screen.
+// ============================================================================
+void drawSkyStars()
+{
+    if (!starsOn)
+        return;
+
+    const float stars[][3] = {
+        {-18.0f, 15.0f, 18.0f}, {-14.0f, 18.0f, 22.0f}, {-10.0f, 14.0f, 20.0f},
+        {-6.0f, 19.0f, 24.0f}, {-2.0f, 16.0f, 21.0f}, {2.0f, 18.0f, 23.0f},
+        {7.0f, 14.5f, 20.0f}, {12.0f, 19.0f, 22.0f}, {17.0f, 16.0f, 18.0f},
+        {-16.0f, 21.0f, 25.0f}, {-11.0f, 20.0f, 26.0f}, {-5.0f, 22.0f, 25.0f},
+        {5.0f, 21.0f, 26.0f}, {11.0f, 22.0f, 25.0f}, {16.0f, 20.0f, 24.0f},
+        {-8.0f, 16.5f, 27.0f}, {0.0f, 20.0f, 28.0f}, {8.0f, 17.0f, 27.0f},
+        {-21.0f, 18.0f, 26.0f}, {-18.0f, 23.0f, 29.0f}, {-13.0f, 16.0f, 30.0f},
+        {-9.0f, 24.0f, 29.0f}, {-3.0f, 23.0f, 31.0f}, {3.5f, 24.0f, 30.0f},
+        {9.5f, 23.0f, 29.0f}, {14.5f, 16.5f, 30.0f}, {20.5f, 19.0f, 27.0f},
+        {-23.0f, 21.0f, 32.0f}, {-15.0f, 26.0f, 33.0f}, {-7.0f, 27.0f, 32.0f},
+        {1.0f, 26.0f, 34.0f}, {8.0f, 27.0f, 33.0f}, {16.0f, 25.0f, 32.0f},
+        {23.0f, 22.0f, 31.0f}, {-20.0f, 14.5f, 30.0f}, {20.0f, 15.0f, 29.0f},
+        // Extra stars floating just above the left and right building roofs.
+        {-20.5f, 12.4f, 5.0f}, {-18.0f, 13.2f, 10.0f}, {-23.0f, 12.8f, 15.0f},
+        {20.5f, 12.4f, 5.0f}, {18.0f, 13.2f, 10.0f}, {23.0f, 12.8f, 15.0f},
+        // Additional stars spread across the upper sky.
+        {-24.0f, 18.0f, 20.0f}, {-19.0f, 25.0f, 28.0f}, {-13.0f, 27.0f, 35.0f},
+        {-4.0f, 28.0f, 36.0f}, {5.0f, 29.0f, 35.0f}, {14.0f, 27.0f, 34.0f},
+        {20.0f, 24.0f, 29.0f}, {25.0f, 18.5f, 21.0f}, {-25.0f, 15.0f, 24.0f},
+        {-1.0f, 15.0f, 30.0f}, {4.0f, 16.0f, 32.0f}, {25.0f, 15.0f, 25.0f},
+        // Extra edge stars for a fuller night-sky effect.
+        {-27.0f, 19.0f, 23.0f}, {-26.0f, 23.0f, 29.0f}, {-22.0f, 27.0f, 34.0f},
+        {-17.0f, 29.0f, 37.0f}, {-10.0f, 30.0f, 39.0f}, {11.0f, 30.0f, 38.0f},
+        {18.0f, 29.0f, 36.0f}, {24.0f, 26.0f, 32.0f}, {27.0f, 20.0f, 24.0f},
+        {-29.0f, 16.0f, 28.0f}, {-24.0f, 13.5f, 18.0f}, {-15.0f, 14.0f, 23.0f},
+        {15.0f, 14.0f, 23.0f}, {24.0f, 13.5f, 18.0f}, {29.0f, 16.0f, 28.0f},
+        // Stars directly above the two side-building rooftops.
+        {-22.5f, 12.4f, -5.0f}, {-22.5f, 12.8f, 2.0f}, {-22.5f, 12.5f, 9.0f},
+        {-22.5f, 12.9f, 16.0f}, {22.5f, 12.4f, -5.0f}, {22.5f, 12.8f, 2.0f},
+        {22.5f, 12.5f, 9.0f}, {22.5f, 12.9f, 16.0f},
+        {-21.5f, 13.6f, -2.0f}, {-19.5f, 13.8f, 6.0f}, {-21.5f, 13.5f, 13.0f},
+        {-19.5f, 13.7f, 20.0f}, {21.5f, 13.6f, -2.0f}, {19.5f, 13.8f, 6.0f},
+        {21.5f, 13.5f, 13.0f}, {19.5f, 13.7f, 20.0f}
+    };
+
+    // Keep stars visible during fireworks, but still softer than the bursts.
+    const float brightness = fireworksOn ? 0.72f : 1.0f;
+
+    glDisable(GL_LIGHTING);
+    glDepthMask(GL_FALSE);
+    glPointSize(3.2f);
+    glBegin(GL_POINTS);
+    for (int i = 0; i < (int)(sizeof(stars) / sizeof(stars[0])); i++)
+    {
+        if (i % 3 == 0)
+            glColor3f(0.78f * brightness, 0.86f * brightness, 1.0f * brightness);
+        else if (i % 3 == 1)
+            glColor3f(1.0f * brightness, 0.86f * brightness, 0.38f * brightness);
+        else
+            glColor3f(0.88f * brightness, 0.90f * brightness, 0.86f * brightness);
+
+        glVertex3fv(stars[i]);
+    }
+    glEnd();
+    glPointSize(1.0f);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_LIGHTING);
 }
 
 // ============================================================================
@@ -649,7 +720,7 @@ void drawFEUManilaGrandstand()
     glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
     glColor3f(0.03f, 0.24f, 0.11f);
     glLineWidth(2.2f);
-    drawStrokeText3D("FEU MANILA GRANDSTAND", 0.0076f);
+    drawStrokeText3D("FAR EASTERN UNIVERSITY", 0.0120f);
     glPopMatrix();
     glEnable(GL_LIGHTING);
     glPopMatrix();
@@ -2772,7 +2843,7 @@ void drawConcertHUD2D()
         const float left = 10.0f;
         const float right = 450.0f;
         const float top = (float)winHeight - 10.0f;
-        const float bottom = (float)winHeight - 134.0f;
+        const float bottom = (float)winHeight - 151.0f;
 
         glColor4f(0.03f, 0.11f, 0.07f, 0.68f);
         glBegin(GL_QUADS);
@@ -2815,8 +2886,9 @@ void drawConcertHUD2D()
                        std::string("| [M] Haze: ") + (hazeMachinesOn ? "ON" : "OFF"));
         drawText2D(18.0f, top - 101.0f,
                    std::string("[K] Fireworks: ") + (fireworksOn ? "ON " : "OFF ") +
-                       std::string("| [Up/Dn] Riser | [Drag] Orbit"));
-        drawText2D(18.0f, top - 118.0f, "[WASD] Pan/Zoom | [Wheel] Zoom | [R] Reset View");
+                       std::string("| [J] Stars: ") + (starsOn ? "ON" : "OFF"));
+        drawText2D(18.0f, top - 118.0f, "[Up/Dn] Riser | [Drag] Orbit | [Wheel] Zoom");
+        drawText2D(18.0f, top - 135.0f, "[WASD] Pan/Zoom | [R] Reset View");
     }
     else
     {
@@ -2888,6 +2960,7 @@ void display()
     setupLighting();
     drawConcertScene3D();
     drawConcertCrowd();
+    drawSkyStars();
     drawAerialFireworks();
     drawConcertHUD2D();
 
@@ -2988,6 +3061,10 @@ void keyboardCallback(unsigned char key, int x, int y)
     case 'K':
         fireworksOn = !fireworksOn;
         break;
+    case 'j':
+    case 'J':
+        starsOn = !starsOn;
+        break;
     case 'h':
     case 'H':
         showHUD = !showHUD;
@@ -3017,7 +3094,7 @@ void keyboardCallback(unsigned char key, int x, int y)
         riserHeight = 0.0f;
         lightShowMode = 1;
         spotCyanOn = spotMagentaOn = spotAmberOn = spotBeamsOn = floorSpotsOn = houseLightOn = true;
-        strobeOn = ledParsOn = ledBarsOn = stormyOn = bandJamActive = hazeMachinesOn = fireworksOn = true;
+        strobeOn = ledParsOn = ledBarsOn = stormyOn = bandJamActive = hazeMachinesOn = fireworksOn = starsOn = true;
         break;
     case 27:
         exit(0);
